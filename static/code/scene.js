@@ -5,6 +5,8 @@ import { OrbitControls } from './vendor/OrbitControls.js';
 class Scene {
   constructor() {
     this.objects = []
+
+    
     this.scene = new THREE.Scene();
 
     /* Renderer */
@@ -14,8 +16,8 @@ class Scene {
 
     /* Camera */
     this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    this.camera.position.setZ(-1)
-
+    this.camera.position.set(2.5, 3.5, 0)
+    this.camera.rotation.set(-1.5, 1.0, 1.5)
     /* Lighting */
     const ambientLight = new THREE.AmbientLight(0xffffff);
     const light = new THREE.DirectionalLight( 0xFFF4D6, 1.0 );
@@ -60,8 +62,6 @@ class Scene {
   }
 
 }
-
-
 
 export default Scene;
 

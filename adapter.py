@@ -127,6 +127,7 @@ class SimPubAdapter:
   def _update_loop(self):
     
     while self.running:
+      
       if self.connected:
         self._process_topics()
         self._process_services()
