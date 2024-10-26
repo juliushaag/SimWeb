@@ -43,15 +43,14 @@ class SimPubAdapter:
     # request socket
     self.zmq_ctx = zmq.Context()
 
-    self.reqSocket = zmq.Socket(self.zmq_ctx, zmq.REQ)
-
     self.reqLock = Lock()
-
+    self.reqSocket = zmq.Socket(self.zmq_ctx, zmq.REQ)
+    
     self.repSocket = zmq.Socket(self.zmq_ctx, zmq.REP)
     self.subSocket = zmq.Socket(self.zmq_ctx, zmq.SUB)
     self.pubSocket = zmq.Socket(self.zmq_ctx, zmq.PUB)
     
-    self.sockets = [ self.reqSocket, self.repSocket, self.subSocket, self.pubSocket ]
+    self.sockets = [ self.discoveryClient, self.reqSocket, self.repSocket, self.subSocket, self.pubSocket ]
     
     self.local_info = NetInfo("WebInterface", None, None, None)
 
@@ -84,7 +83,6 @@ class SimPubAdapter:
       
       assert recv_type in { str, bytes }
 
-      # TODO: Whats the best way to add a timeout ? 
       if recv_type == str:
         return self.reqSocket.recv_string()
       elif recv_type == bytes:
@@ -119,10 +117,11 @@ class SimPubAdapter:
 
 
   def __del__(self):
-    self.discoveryClient.close()
-    self.pubSocket.close()
-    self.repSocket.close()
-    self.reqSocket.close()
+
+    for socket in self.sockets:
+      socket.close()
+
+    self.zmq_ctx.destroy()
 
   def _update_loop(self):
     
@@ -135,11 +134,10 @@ class SimPubAdapter:
       try:
         data, addr =  self.discoveryClient.recvfrom(1024)
 
-
-        if not data.startswith(b"SimPub"): continue
-
         data = data.decode()
         addr = addr[0]
+
+        if not data.startswith("SimPub"): continue
 
         _, conn_id, conn_info = data.split(':', 2)
 
@@ -155,7 +153,6 @@ class SimPubAdapter:
         self.server_info.ip = addr
 
         self.local_info.ip = self._get_local_ips_in_same_subnet(addr)
-
         self._start_connection()
 
 
@@ -174,6 +171,7 @@ class SimPubAdapter:
     self.connected = False
 
   def _start_connection(self):
+
     if self.connected: self._stop_connection() 
 
     assert not self.connected
@@ -248,8 +246,3 @@ class SimPubAdapter:
 
             return local_ip
 
-
-
-if __name__ == "__main__":
-
-  SimPubAdapter()
