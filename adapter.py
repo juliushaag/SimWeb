@@ -127,7 +127,7 @@ class SimPubAdapter:
   def _update_loop(self):
     
     while self.running:
-      
+
       if self.connected:
         self._process_topics()
         self._process_services()
@@ -188,15 +188,8 @@ class SimPubAdapter:
 
     self.request("Register", json.dumps(asdict(self.local_info)))
 
-    self._load_scene()
-
-
-  def _load_scene(self):
-
     self.scene_info = json.loads(self.request("Scene"))
     self.scene_id = self.scene_info["id"]
-
-
 
   def _process_topics(self):
 
