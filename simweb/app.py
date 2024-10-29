@@ -2,6 +2,7 @@ import io
 from pathlib import Path
 import flask
 from simweb.adapter import SimPubAdapter
+import logging
 
 class SimViz:
 
@@ -12,7 +13,11 @@ class SimViz:
     self.own_path = Path(__file__).parent
     
     self.app = flask.Flask("simviz", template_folder=self.own_path / "web", static_folder= self.own_path / "web/static")
-
+    print("You can access the web interface at http://127.0.0.1:5000")
+    
+    log = logging.getLogger('werkzeug')
+    log.setLevel(logging.ERROR)
+    
     self.app.add_url_rule('/', 'index', self.get_index)
     self.app.add_url_rule('/scene_id', 'scene_id', self.get_scene_id)
     self.app.add_url_rule('/scene_data', 'scene_data', self.get_scene)
