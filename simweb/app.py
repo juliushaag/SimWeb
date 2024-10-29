@@ -1,7 +1,7 @@
 import io
+from pathlib import Path
 import flask
-from flask import json, render_template, jsonify
-from adapter import SimPubAdapter
+from simweb.adapter import SimPubAdapter
 
 class SimViz:
 
@@ -9,7 +9,9 @@ class SimViz:
 
     self.adapter = SimPubAdapter()
 
-    self.app = flask.Flask("simviz", template_folder="web")
+    self.own_path = Path(__file__).parent
+    
+    self.app = flask.Flask("simviz", template_folder=self.own_path / "web", static_folder= self.own_path / "web/static")
 
     self.app.add_url_rule('/', 'index', self.get_index)
     self.app.add_url_rule('/scene_id', 'scene_id', self.get_scene_id)
@@ -41,5 +43,9 @@ class SimViz:
       return flask.send_file(io.BytesIO(data), mimetype='blob/bin')
     return "Invalid data request", 404
 
-if __name__ == "__main__":
+def main():
   sim = SimViz()
+
+
+if __name__ == "__main__":
+  main()

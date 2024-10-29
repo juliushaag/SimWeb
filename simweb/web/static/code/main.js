@@ -11,9 +11,13 @@ function convertLHtoRH(x, y, z) {
   return new THREE.Vector3(x, y, -z);
 }
 
-
 function convertQuaternionLHtoRH(x, y, z, w) {
   return new THREE.Quaternion(-x, -y, z, w);
+}
+
+function convertScale(type, x, y, z) {
+  if (type == "CYLINDER") return new THREE.Vector3(0.5 * x, 2 * y, 0.5 * z)
+  else return new THREE.Vector3(x, y, z) 
 }
 
 function create_body(assets, body) {
@@ -39,7 +43,7 @@ function create_body(assets, body) {
     }[visual.type]()
     
     const material = visual.material == undefined ? 
-                new THREE.MeshStandardMaterial({color:new THREE.Color(...visual.color).getHex()}) 
+                new THREE.MeshPhysicalMaterial({color:new THREE.Color(...visual.color).getHex()}) 
                 : assets.materials[visual.material]
 
 
@@ -47,7 +51,7 @@ function create_body(assets, body) {
     
     visualObj.position.copy(convertLHtoRH(...visual.trans.pos))
     visualObj.quaternion.copy(convertQuaternionLHtoRH(...visual.trans.rot))
-    visualObj.scale.set(...visual.trans.scale)
+    visualObj.scale.copy(convertScale(visual.type, ...visual.trans.scale))
     visuals.add(visualObj)
   })
 
@@ -62,7 +66,9 @@ function create_body(assets, body) {
 }
 
 function construct_scene(data) {
-  if (update_fn != undefined) clearInterval(setInterval);
+  
+  if (update_fn) clearInterval(update_fn);
+
   RenderScene.clear()
   scene_objects = {}
 
@@ -77,13 +83,12 @@ function construct_scene(data) {
   boundingBox.getCenter(center);
   root.position.set(-center.x, 0.1 , -center.z)
 
-  console.log("Loaded scene", root)
+  console.log("Loaded scene", root, data)
 
   update_fn = setInterval(() => {
     fetch("/scene_state")
     .then(response => response.json())
     .then(data => {
-      console.log(RenderScene.camera)
       if (!data) return
       Object.entries(data.updateData).forEach(entry => {
         const [name, value] = entry
@@ -102,7 +107,7 @@ function construct_scene(data) {
         obj.quaternion.copy(worldQuaternion).multiply(newquat)
       })
     })
-    .catch()
+    .catch(error => console.error('Error updating the scene:', error))
   }, 20); 
 }
 
@@ -229,6 +234,7 @@ setInterval(() => {
   .then(response => response.json())
   .then(new_id => {
     if (current_id == new_id) return;
+    console.log("Reloading scene")
     current_id = new_id
     load_scene()
   })

@@ -141,6 +141,7 @@ class SimPubAdapter:
 
         _, conn_id, conn_info = data.split(':', 2)
 
+
         if conn_id == self.server_id: continue
 
         self.server_id = conn_id
